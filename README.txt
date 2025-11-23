@@ -6,7 +6,7 @@ Enhanced Generic Mod Enabler and manager.
 Patched by Nagatsuki Deliana from the fork of VNAO_Solid at version 1.8.0, May 2022
 For 3rd Wing virtual squadron
 ----------------------------------------------------------------------------------------
-Version: 1.8.1
+Version: 1.8.1.2
 ----------------------------------------------------------------------------------------
 IMPORTANT NOTE :
 
@@ -14,7 +14,9 @@ If you already had an older version of OvGME, make sure to move your folder OvGM
 to C:\Users\YourUser\Saved Games. I changed the home directory for being able to run as
 invoker instead of run as administrator.
 ----------------------------------------------------------------------------------------
-Home page: https://github.com/sedenion/ovgme
+Home page of the 3rd Wing edited by Nagatsuki : https://github.com/ECV3W/OvGME
+
+Home page of Solid: https://github.com/VNAO-Solid/ovgme
 
 ----------------------------------------------------------------------------------------
 Presentation

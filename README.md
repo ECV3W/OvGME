@@ -5,20 +5,17 @@ Enhanced Generic Mod Enabler and manager.
 **IMPORTANT NOTE :**
 ----------------------------------------------------------------------------------------
 If you already had an older version of OvGME, make sure to move your folder OvGME at C:/ProgramData
-to C:\Users\YourUser\AppData\Local. I changed the home directory for being able to run as
+to C:\Users\YourUser\Saved Games. I changed the home directory for being able to run as
 invoker instead of run as administrator.
 
 ----------------------------------------------------------------------------------------
 
-**Version: 1.8.0.1, October 2025**
-- Fixed string comparaison for detecting the right string "content-lenght" in the http header. 
-  May cause unsupported HTTP chunked transfer encoding error while querying repositories
-- Change path to OvGME home dir from C:/ProgramData to C:\Users\UserName\AppData\Local
-  No need to run as Admin now
-- Run as invoker by default 
+**Version: 1.8.1.2, November 2025**
 
 Edited by Nagatsuki Deliana from the Solid's fork at the github page below
 For 3rd Wing virtual squadron
+
+Home page of the 3rd Wing edited by Nagatsuki : https://github.com/ECV3W/OvGME
 
 Home page of Solid: https://github.com/VNAO-Solid/ovgme
 
