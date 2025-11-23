@@ -1,0 +1,49 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 23
+    },
+    "configurePresets": [
+        {
+            "name": "GCC 15.2.0 x86_64-w64-mingw32 (mingw64)",
+            "displayName": "GCC 15.2.0 x86_64-w64-mingw32 (mingw64)",
+            "description": "",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_TOOLCHAIN_FILE": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            },
+            "environment": {
+            "MSYSTEM": "MINGW64",
+            "CHERE_INVOKING": "1",
+            "MSYS2_PATH_TYPE": "inherit"
+            }
+        }
+        
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "GCC 15.2.0 x86_64-w64-mingw32 (mingw64)",
+            "configuration": "Debug",
+            "environment": {
+            "MSYSTEM": "MINGW64",
+            "CHERE_INVOKING": "1",
+            "MSYS2_PATH_TYPE": "inherit"
+            }
+        },
+        {
+            "name": "release",
+            "configurePreset": "GCC 15.2.0 x86_64-w64-mingw32 (mingw64)",
+            "configuration": "Release",
+            "environment": {
+            "MSYSTEM": "MINGW64",
+            "CHERE_INVOKING": "1",
+            "MSYS2_PATH_TYPE": "inherit"
+            }
+        }
+    ]
+}

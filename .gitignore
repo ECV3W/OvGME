@@ -3,4 +3,5 @@ obj
 /build
 .vscode
 notes.txt
+.*
 

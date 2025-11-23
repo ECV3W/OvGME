@@ -1,0 +1,202 @@
+OvGME 1.8.1.2, 2025-18-11
+
+- Added http error code management through curl
+
+OvGME 1.8.1.1, 2025-06-11
+
+- Fix bad synchronisation between threads while downloading
+- Fix some bugs with no impact with user
+
+OvGME 1.8.1, 2025-30-10
+
+- Replacing the legacy http query function to retrive the .xml of the repository server by libcurl for have the compatibility with https
+- Replace and include the latest libcurl for Windows
+
+Comment : I deactivated the progress bar for the query of the repositories because that don't work for now with curl. It will fix it in
+a future patch
+
+OvGME 1.8.0.3, 2025-30-10
+
+- Fix a bug where, when we moove from an old or other version of OvGME the home folder in 
+  ProgramData to Saved Games. Not allow to edit configurations and save backup files.
+
+OvGME 1.8.0.2, 2025-25-10
+
+- Fixed VERSIONFILEINFO not writed properly
+- Rearrange column of the list in the repository dialog window
+- Now, the rate is in Bytes instead of bits and the ladder change automatically
+- Change the home folder to Saved Games
+- Fix, items in list in main window getting doubled 
+
+OvGME 1.8.0.1, 2025-16-10
+
+- Fixed string comparaison for detecting the right string "content-lenght" in the http header. 
+  May cause unsupported HTTP chunked transfer encoding error while querying repositories
+- Change path to OvGME home dir from C:/ProgramData to C:\Users\UserName\AppData\Local
+  No need to run as Admin now
+- Run as invoker by default
+- Added 3rd Wing logo in main window and about window
+- Change things into the UI
+- Update libcurl with curl 8.17.0 with only protocol http and https support
+
+OvGME 1.8.0, 2022-05-05
+
+- Use libcurl to speed up downloads
+
+
+OvGME 1.7.4, 2017-13-11
+
+- Fix crash when pressing Esc key in configuration window.
+- Config combo list is now alphabetically sorted.
+- Fix window restored as minimized at startup.
+
+OvGME 1.7.3, 2017-01-08
+
+- Fix Zip files created using Windows Explorer not recognized as valid Mod-Archive.
+- Snapshot comparison log output speed optimization.
+- Fix make mod-archive overwrite cancel process.
+
+OvGME 1.7.2, 2017-01-06
+
+- Fix mod description display when using arrow keys.
+- Add "Sort by enabled" option for mods list view.
+- Add reposition of mods list scroll for long list.
+
+OvGME 1.7.1, 2017-20-02
+
+- Added support for multiple mods profile per config.
+- Fixed version column width for large version numbers.
+- Improving logs reports.
+- New debug logs access via GUI.
+- Help update
+
+OvGME 1.7.0, 2017-14-02
+
+- Dialog windows are now resizable.
+- Main window size and position saved and restored.
+- Global GUI improvement, more clear, better readability.
+- Help updated and corrected.
+
+OvGME 1.6.9, 2017-11-02
+
+- Add Edit button on main dialog.
+- Add Root path entry on main dialog.
+- Fix some GUI elements.
+
+OvGME 1.6.8, 2017-25-01
+
+- Fixed config edit backup dir not updating which produce backup corruption.
+- Added warning confirmation message if backup folder is already used.
+
+OvGME 1.6.7, 2017-18-01
+
+- Fixed download size cropped to 2147483647 bytes.
+- Fixed XML repository parsing error.
+- Added XML parsing test feature.
+
+OvGME 1.6.6, 2016-21-11
+
+- Fixed crash on read error or bad alloc during snapshot.
+
+OvGME 1.6.5, 2016-31-08
+
+- Fixed XML source generator segfault.
+- Added ability to keeps configuration files during uninstall.
+- Fixed uninstall process don't clean backup data.
+- Fixed some dialog text spelling and sentences.
+- "Game" is now a generic "Configuration".
+- Help updated and corrected.
+
+OvGME 1.6.4, 2016-28-08
+
+- Added delete Mod on right-click menu
+- Added quick make Mod-Archive on right-click menu
+- Fixed need "Run As administrator" to write files
+
+OvGME 1.6.3, 2016-26-08
+
+- Fixed Make Mod-Archive bug when created in Mod stock folder
+- Fixed bad optimization on Mod overlap check
+- Fixed error on read or write 0 bytes
+- Fixed main progress bar not working
+- Fixed Directory-Mod has sam version than Mod-Archive
+- Fixed some Cancel button logic
+- Added compression level option for Make Mod-Archive
+- Fixed Undo Mod inconsistent warning log output
+- Backup cleaning optimization
+- Added Mod Process safe Cancel and Undo logic
+
+OvGME 1.6.2, 2016-20-08
+
+- Mod download Url string corruption fixed
+- Mod Apply/Backup logic modification
+- Some correcting on help
+- Added some log output
+
+OvGME 1.6.1, 2016-20-08
+
+- Per-User config and backups fixed.
+- Ability to change game or config during Mods processing fixed.
+- Added Mods processing cancel button for safe cancel.
+- Added confirmation message for Mods profile overwrite.
+- Added log output for network, write and read errors.
+
+OvGME 1.6, 2016-20-08
+
+- Fixed bug for already encoded URL being re-encoded with "%" char interpreted.
+- Added support for HTTP chunked transfer.
+- Added some error check for XML parsing.
+- Empty error message on repository check fail fixed.
+- Help updated and corrected.
+- Help now starts with good window size.
+- Added help source files.
+
+OvGME 1.5.9, 2016-19-08
+
+- Rewritten network code to avoid threading sync bugs.
+- Better network error handling.
+- Reworked Repositories feature.
+- Added Ability to enable or disable repository.
+- Help and Readme updated.
+
+OvGME 1.5.1, 2016-15-08
+
+- Jumping to version 1.5.
+- New code architecture with headers and sources.
+- Added Mod versioning support.
+- Added network repository feature in alpha stage.
+
+OvGME 1.2.1, 2016-11-08
+
+- Fixed two ugly memory leaks.
+- New write error check for mod apply and and backup.
+- Write performances slightly improved.
+- Auto text wrap disabled for snapshot output log.
+- New snapshot cheksum method based on xxHash (faster).
+- Source code: most functions renamed for better naming logic.
+- Help corrected.
+
+OvGME 1.2, 2016-10-08
+
+- Added game snapshot feature (CRC-32 based).
+- Added Mods profile feature.
+- New threaded method for mod apply/restore to avoid "Not Responding" during heavy operations.
+- Overall mod apply/restore algorithm optimized and reinforced (faster, less memory usage).
+- Main menu logic improved (unavailable commands are grayed).
+- Overall memory management optimization.
+- Progress bar logic improved (now work correctly).
+- Cleaned code & several optimizations.
+- Help updated
+
+OvGME 1.1, 2016-08-08
+
+- Adding support for generic 'description.txt' or 'readme.txt' as description text file for mod archives.
+- Adding right-click pop-up menu for mod list with "open folder or archive" option for quick access to mod content.
+- Adding ability to choose a custom backup directory for a game.
+- Adding ability to choose absolute path for mods stock directory for a game.
+- Adding buttons to enable and disable mods in main dialog frame.
+- New mod list view with visible enable/disable icon.
+
+OvGME 1.0, 2016-07-08
+
+- First release
