@@ -173,7 +173,7 @@ CAPTION "OvGME - 3rd Wing Edition About"
 FONT 8, "Ms Shell Dlg"
 {
     CTEXT           "Static", TXT_GPL, 7, 135, 249, 100, SS_CENTER, WS_EX_LEFT
-    CTEXT           "https://github.com/VNAO-Solid/ovgme", 0, 7, 113, 249, 9, SS_CENTER, WS_EX_LEFT
+    CTEXT           "https://github.com/ECV3W/OvGME", 0, 7, 113, 249, 9, SS_CENTER, WS_EX_LEFT
     CTEXT           "Version:", TXT_VERSION, 7, 74, 249, 9, SS_CENTER, WS_EX_LEFT
     CONTROL         IDB_LOGO, 0, WC_STATIC, SS_BITMAP, 38, 18, 95, 35, WS_EX_LEFT
     CONTROL         "", IMG_THIRD, WC_STATIC, SS_BITMAP | WS_CHILD | WS_VISIBLE, 156, 7, 23, 100
