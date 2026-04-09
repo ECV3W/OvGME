@@ -1,3 +1,7 @@
+OvGME 1.8.1.3, 2026-09-04
+
+- Fix crash occure when an error appear while getting repository's xml file from a server
+
 OvGME 1.8.1.2, 2025-18-11
 
 - Added http error code management through curl

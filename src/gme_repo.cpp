@@ -1047,6 +1047,8 @@ DWORD WINAPI GME_RepoQueryUpd_Th(void* args)
     http_reqs++;
 
     g_ReposQry_Id = i;
+    
+    err_msg.clear();
 
     xml_url.clear();
     xml_url = g_GME_Repos_List[i].url;
@@ -1093,11 +1095,9 @@ DWORD WINAPI GME_RepoQueryUpd_Th(void* args)
         /* deabused error code to mark file open error ;) */
         err_msg += "Can't open temp file or write in it for download.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Can't open temp file or write in it for download.", "I/O Write error");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"I/O Write error");
         break;
       case CURLE_ABORTED_BY_CALLBACK:
         showdialog = false;
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Aborted by user");
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download aborted", "Aborted by user");
         err_msg += "Aborted by user";
         break;
@@ -1120,72 +1120,61 @@ DWORD WINAPI GME_RepoQueryUpd_Th(void* args)
       /*Error receive from http code*/
       bool showdialog = true;
       http_fail++;
-      err_msg = "Download failed for '" + GME_StrToMbs(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
+      err_msg = "fail to retrive for file : " + xml_url + "\r\n\r\n    ";
       switch(curl_result.http_code)
       {
       case HTTP_ERROR_BAD_REQUEST:
         err_msg += "The server could not understand the request due to invalid syntax.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "The server could not understand the request due to invalid syntax.", "HTTP error 400 Bad Request");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 400 bad request");
         break;
       
       case HTTP_ERROR_UNAUTHORIZED:
         err_msg += "Authentication is required or has failed.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Authentication is required or has failed.", "HTTP error 401 Unauthorized");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 401 Unauthorized");
         break;
 
       case HTTP_ERROR_FORBIDDEN:
         err_msg += "The request is valid but access is forbidden.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "The request is valid but access is forbidden.", "HTTP error 403 Forbidden");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 403 Forbidden");
         break;
 
       case HTTP_ERROR_PAGE_NOT_FOUND:
         err_msg += "The resource cannot be found on the server.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "The resource cannot be found on the server.", "HTTP error 404 Not Found");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 404 Not Found");
         break;
 
       case HTTP_ERROR_METHOD_NOT_ALLOWED:
         err_msg += "The HTTP method is not allowed for this resource.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "The HTTP method is not allowed for this resource.", "HTTP error 405 Method Not Allowed");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 405 Method Not Allowed");
         break;
 
       case HTTP_ERROR_PAYLOAD_TOO_LARGE:
         err_msg += "The request is too large for the server to process.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "The request is too large for the server to process.", "HTTP error 413 Payload Too Large");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 413 Payload Too Large");
         break;
       
       case HTTP_ERROR_INTERNAL_SERVER_ERROR:
         err_msg += "A generic error occurred on the server.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "A generic error occurred on the server.", "HTTP error 500 Internal Server Error");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 500 Internal Server Error");
         break;
 
       case HTTP_ERROR_BAD_GATEWAY:
         err_msg += "Invalid response from an upstream server.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Invalid response from an upstream server.", "HTTP error 502 Bad Gateway");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 502 Bad Gateway");
         break;
 
       case HTTP_ERROR_SERVICE_UNAVAILABLE:
         err_msg += "The server is temporarily unavailable.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "The server is temporarily unavailable.", "HTTP error 503 Service Unavailable");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 503 Service Unavailable");
         break;
 
       case HTTP_ERROR_GATEWAY_TIMEOUT:
         err_msg += "The upstream server failed to send a request in time.";
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "The upstream server failed to send a request in time.", "HTTP error 504 Gateway Timeout");
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP error 504 Gateway Timeout");
         break;
       
       default:
         err_msg += "HTTP Error code : " + curl_result.http_code;
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, (L"HTTP error " + std::to_wstring(curl_result.http_code)).c_str());
         GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", ("HTTP error " + std::to_string(curl_result.http_code)).c_str());
         break;
       
