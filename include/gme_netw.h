@@ -37,6 +37,7 @@
 #define HTTP_ERROR_SERVICE_UNAVAILABLE 503
 #define HTTP_ERROR_GATEWAY_TIMEOUT 504
 
+//bool AcceptRanges = false;
 
 bool GME_NetwIsUrl(const char* str);
 std::string GME_NetwEncodeUrl(const char* url);

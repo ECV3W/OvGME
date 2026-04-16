@@ -20,6 +20,8 @@
 #include <locale>
 #include <algorithm>
 
+bool AcceptRanges = false;
+
 
 /* structure for common url */
 struct GME_Url_Struct
@@ -670,6 +672,20 @@ static size_t write_body(void *ptr, size_t size, size_t nmemb, std::string* stri
 
 }
 
+// Callback for get header and find if Accept-Ranges is true
+static size_t ReadHeader(char *buffer, size_t size, size_t nitems, void *userdata)
+{
+    size_t total = size * nitems;
+    bool *isacceptranges = (bool*)userdata;
+
+    if (total >= 14 && strncasecmp(buffer, "Accept-Ranges:", 14) == 0) 
+    {
+      if (strstr(buffer, "bytes") != NULL)
+        *isacceptranges = true;
+    }
+    return total;
+}
+
 
 /*
   function to send GET Http request to a server.
@@ -891,6 +907,8 @@ curlRes GME_NetwHttpGETCurl(const char* url_str, const GME_NetwGETOnErr on_err, 
   curl_easy_setopt(curl_handle, CURLOPT_XFERINFODATA, &prog);
   curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
   curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, 70000000L);
+  curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_TIME, 1L);
 
   /* send all data to this function  */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
@@ -970,7 +988,9 @@ curlRes GME_NetwHttpGETCurl(const char* url_str, const GME_NetwGETOnErr on_err, 
   //curl_easy_setopt(curl_handle, CURLOPT_XFERINFODATA, &prog);
   curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
   curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, ReadHeader);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_body);
+  curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, &AcceptRanges);
 
   /* write the page body to this file handle */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &body_data);
