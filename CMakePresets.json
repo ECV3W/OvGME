@@ -14,12 +14,15 @@
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_TOOLCHAIN_FILE": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_C_COMPILER": "${env.MSYS2}/mingw64/bin/gcc.exe",
+                "CMAKE_CXX_COMPILER": "${env.MSYS2}/mingw64/bin/g++.exe",
+                "CMAKE_MAKE_PROGRAM": "${env.MSYS2}/mingw64/bin/ninja.exe"
             },
             "environment": {
-            "MSYSTEM": "MINGW64",
-            "CHERE_INVOKING": "1",
-            "MSYS2_PATH_TYPE": "inherit"
+                "MSYSTEM": "MINGW64",
+                "CHERE_INVOKING": "1",
+                "MSYS2_PATH_TYPE": "inherit"
             }
         }
         
