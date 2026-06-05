@@ -1922,6 +1922,9 @@ void *tdefl_write_image_to_png_file_in_memory(const void *pImage, int w, int h, 
   #include <stdio.h>
   #include <sys/stat.h>
 
+FILE* mz_wfopen(const char* path, const char* mode);
+FILE *mz_wfreopen(const char *pPath, const char *pMode, FILE *pStream);
+
   #if defined(_MSC_VER) || defined(__MINGW64__)
     static FILE *mz_fopen(const char *pFilename, const char *pMode)
     {
@@ -1940,7 +1943,7 @@ void *tdefl_write_image_to_png_file_in_memory(const void *pImage, int w, int h, 
       #include <sys/utime.h>
     #endif
     #define MZ_FILE FILE
-    #define MZ_FOPEN mz_fopen
+    #define MZ_FOPEN mz_wfopen
     #define MZ_FCLOSE fclose
     #define MZ_FREAD fread
     #define MZ_FWRITE fwrite
@@ -1949,7 +1952,7 @@ void *tdefl_write_image_to_png_file_in_memory(const void *pImage, int w, int h, 
     #define MZ_FILE_STAT_STRUCT _stat
     #define MZ_FILE_STAT _stat
     #define MZ_FFLUSH fflush
-    #define MZ_FREOPEN mz_freopen
+    #define MZ_FREOPEN mz_wfreopen
     #define MZ_DELETE_FILE remove
   #elif defined(__MINGW32__)
     #ifndef MINIZ_NO_TIME
