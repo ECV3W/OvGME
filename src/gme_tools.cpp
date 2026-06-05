@@ -244,6 +244,21 @@ std::string GME_StrToLower(const char* str)
 /*
   function to convert wide char std::wstring to mbs std::string
 */
+
+std::string GME_WcsToUtf8(const std::wstring& str)
+{
+  int size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, nullptr, 0, nullptr, nullptr);
+  std::string cs(size - 1, L'\0');
+  WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, cs.data(), size, nullptr, nullptr);
+  return cs;
+}
+
+void GME_WcsToUtf8(std::string& cs, const std::wstring& str)
+{
+  int size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, nullptr, 0, nullptr, nullptr);
+  WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, cs.data(), size, nullptr, nullptr);
+}
+
 std::string GME_StrToMbs(const std::wstring& str)
 {
   std::string mbs;
@@ -264,6 +279,33 @@ void GME_StrToMbs(std::string& mbs, const std::wstring& str)
   wcstombs(buff, str.c_str(), s);
   mbs.assign(buff);
   delete [] buff;
+}
+
+// Re-impplementation of MZ_FOPEN
+extern "C" FILE *mz_wfopen(const char *pFilename, const char *pMode)
+{
+  FILE* pFile = NULL;
+  std::wstring pwFilename,
+               pwMode;
+
+  pwFilename = GME_Utf8ToWcs(pFilename);
+  pwMode = GME_Utf8ToWcs(pMode);
+  pFile = _wfopen(pwFilename.c_str(), pwMode.c_str());
+  return pFile;
+}
+
+// Re-impplementation of MZ_FREOPEN
+extern "C" FILE *mz_wfreopen(const char *pPath, const char *pMode, FILE *pStream)
+{
+  FILE* pFile = NULL;
+  std::wstring pwPath,
+               pwMode;
+               
+  pwPath = GME_Utf8ToWcs(pPath);
+  pwMode = GME_Utf8ToWcs(pMode);
+  if (_wfreopen_s(&pFile, pwPath.c_str(), pwMode.c_str(), pStream))
+    return NULL;
+  return pFile;
 }
 
 /*
@@ -291,6 +333,19 @@ void GME_StrToWcs(std::wstring& wcs, const std::string& str)
   delete[] buff;
 }
 
+std::wstring GME_Utf8ToWcs(const std::string& str)
+{
+  int size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+  std::wstring wcs(size - 1, L'\0');
+  MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, wcs.data(), size);
+  return wcs;
+}
+
+void GME_Utf8ToWcs(std::wstring& wcs, const std::string& str)
+{
+  int size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+  MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, wcs.data(), size);
+}
 
 /*
   function to test if a name contains illegal characters
@@ -397,7 +452,7 @@ bool GME_DirRemove(const std::wstring& path)
 {
   if(!RemoveDirectoryW(path.c_str())) {
     std::string msg = "RemoveDirectoryW error " + GME_GetLastErrorStr();
-    GME_Logs(GME_LOG_ERROR, "GME_DirRemove", msg.c_str(), GME_StrToMbs(path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_DirRemove", msg.c_str(), GME_WcsToUtf8(path).c_str());
     return false;
   }
   return true;
@@ -411,7 +466,7 @@ bool GME_DirCreate(const std::wstring& path)
 {
   if(!CreateDirectoryW(path.c_str(), NULL)) {
     std::string msg = "CreateDirectoryW error " + GME_GetLastErrorStr();
-    GME_Logs(GME_LOG_ERROR, "GME_DirCreate", msg.c_str(), GME_StrToMbs(path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_DirCreate", msg.c_str(), GME_WcsToUtf8(path).c_str());
     return false;
   }
   return true;
@@ -436,7 +491,7 @@ bool GME_DirRemRecursive(const std::wstring& path)
   int result = SHFileOperationW(&fop);
   if(result) {
     std::string msg = "SHFileOperationW error #"; msg += std::to_string(result);
-    GME_Logs(GME_LOG_ERROR, "GME_DirRemRecursive", msg.c_str(), GME_StrToMbs(path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_DirRemRecursive", msg.c_str(), GME_WcsToUtf8(path).c_str());
     return false;
   }
   return true;
@@ -461,7 +516,7 @@ bool GME_DirRemToTrash(const std::wstring& path)
   int result = SHFileOperationW(&fop);
   if(result) {
     std::string msg = "SHFileOperationW error #"; msg += std::to_string(result);
-    GME_Logs(GME_LOG_ERROR, "GME_DirRemToTrash", msg.c_str(), GME_StrToMbs(path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_DirRemToTrash", msg.c_str(), GME_WcsToUtf8(path).c_str());
     return false;
   }
   return true;
@@ -494,13 +549,13 @@ bool GME_FileRead(ubyte* data, size_t size, const std::wstring& src)
   FILE* fr = _wfopen(src.c_str(), L"rb");
 
   if(fr == NULL) {
-    GME_Logs(GME_LOG_ERROR, "GME_FileRead", "Unable to open file for reading", GME_StrToMbs(src).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_FileRead", "Unable to open file for reading", GME_WcsToUtf8(src).c_str());
     return false;
   }
 
   if(fread(data, 1, size, fr) != size) {
     fclose(fr);
-    GME_Logs(GME_LOG_ERROR, "GME_FileRead", "Read error", GME_StrToMbs(src).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_FileRead", "Read error", GME_WcsToUtf8(src).c_str());
     return false;
   }
 
@@ -525,7 +580,7 @@ bool GME_FileWrite(const ubyte* data, size_t size, const std::wstring& dst, bool
   FILE* fw = _wfopen(dst.c_str(), L"wb");
 
   if(fw == NULL) {
-    GME_Logs(GME_LOG_ERROR, "GME_FileWrite", "Unable to open file for writing", GME_StrToMbs(dst).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_FileWrite", "Unable to open file for writing", GME_WcsToUtf8(dst).c_str());
     return false;
   }
 
@@ -535,14 +590,14 @@ bool GME_FileWrite(const ubyte* data, size_t size, const std::wstring& dst, bool
     size -= sizeof(buff);
     if(fwrite(buff, 1, sizeof(buff), fw) != sizeof(buff)) {
       fclose(fw);
-      GME_Logs(GME_LOG_ERROR, "GME_FileWrite", "Write error", GME_StrToMbs(dst).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_FileWrite", "Write error", GME_WcsToUtf8(dst).c_str());
       return false;
     }
   }
   memcpy(buff, data, size);
   if(fwrite(buff, 1, size, fw) != size) {
     fclose(fw);
-    GME_Logs(GME_LOG_ERROR, "GME_FileWrite", "Write error", GME_StrToMbs(dst).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_FileWrite", "Write error", GME_WcsToUtf8(dst).c_str());
     return false;
   }
 
@@ -562,7 +617,7 @@ bool GME_FileCopy(const std::wstring& src, const std::wstring& dst, bool overwri
 
   if(!CopyFileW(src.c_str(),dst.c_str(), false)) {
     std::string msg = "CopyFileW error " + GME_GetLastErrorStr();
-    std::string itm = "\r\n\tSRC: " + GME_StrToMbs(src) + "\r\n\tDST: " + GME_StrToMbs(dst);
+    std::string itm = "\r\n\tSRC: " + GME_WcsToUtf8(src) + "\r\n\tDST: " + GME_WcsToUtf8(dst);
     GME_Logs(GME_LOG_ERROR, "GME_FileCopy", msg.c_str(), itm.c_str());
     return false;
   }
@@ -577,14 +632,14 @@ bool GME_FileMove(const std::wstring& src, const std::wstring& dst, bool overwri
   if(overwrite) {
     if(!MoveFileExW(src.c_str(),dst.c_str(),MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING)) {
       std::string msg = "MoveFileExW error " + GME_GetLastErrorStr();
-      std::string itm = "\r\n\tSRC: " + GME_StrToMbs(src) + "\r\n\tDST: " + GME_StrToMbs(dst);
+      std::string itm = "\r\n\tSRC: " + GME_WcsToUtf8(src) + "\r\n\tDST: " + GME_WcsToUtf8(dst);
       GME_Logs(GME_LOG_ERROR, "GME_FileMove", msg.c_str(), itm.c_str());
       return false;
     }
   } else {
     if(!MoveFileExW(src.c_str(),dst.c_str(),MOVEFILE_COPY_ALLOWED)) {
       std::string msg = "MoveFileExW error " + GME_GetLastErrorStr();
-      std::string itm = "\r\n\tSRC: " + GME_StrToMbs(src) + "\r\n\tDST: " + GME_StrToMbs(dst);
+      std::string itm = "\r\n\tSRC: " + GME_WcsToUtf8(src) + "\r\n\tDST: " + GME_WcsToUtf8(dst);
       GME_Logs(GME_LOG_ERROR, "GME_FileMove", msg.c_str(), itm.c_str());
       return false;
     }
@@ -600,7 +655,7 @@ bool GME_FileDelete(const std::wstring& dst)
 {
   if(!DeleteFileW(dst.c_str())) {
     std::string msg = "DeleteFileW error " + GME_GetLastErrorStr();
-    GME_Logs(GME_LOG_ERROR, "GME_FileDelete", msg.c_str(), GME_StrToMbs(dst).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_FileDelete", msg.c_str(), GME_WcsToUtf8(dst).c_str());
     return false;
   }
   return true;
@@ -814,7 +869,7 @@ bool GME_IsZip(const std::wstring& zip)
 {
   mz_zip_archive za; // Zip archive struct
   memset(&za, 0, sizeof(mz_zip_archive));
-  if(!mz_zip_reader_init_file(&za, GME_StrToMbs(zip).c_str(), 0)) {
+  if(!mz_zip_reader_init_file(&za, GME_WcsToUtf8(zip).c_str(), 0)) {
     return false;
   }
   mz_zip_reader_end(&za);
@@ -830,7 +885,7 @@ bool GME_ZipIsValidMod(const std::wstring& zip)
   mz_zip_archive za; // Zip archive struct
   mz_zip_archive_file_stat zf; // zip file stat struct
 
-  std::string zip_name = GME_StrToMbs(zip);
+  std::string zip_name = GME_WcsToUtf8(zip);
   memset(&za, 0, sizeof(mz_zip_archive));
   if(!mz_zip_reader_init_file(&za, zip_name.c_str(), 0)) {
     GME_Logs(GME_LOG_WARNING, "GME_ZipIsValidMod", "Invalid Zip file:", zip_name.c_str());
@@ -866,7 +921,7 @@ bool GME_ZipIsValidMod(const std::wstring& zip)
 */
 bool GME_ZipGetModDesc(const std::wstring& zip, std::wstring* desc)
 {
-  std::string zip_name = GME_StrToMbs(zip);
+  std::string zip_name = GME_WcsToUtf8(zip);
   std::string mod_name = GME_FilePathToName(zip_name);
   std::vector<std::string> txt_name;
 
@@ -928,7 +983,7 @@ bool GME_ZipGetModDesc(const std::wstring& zip, std::wstring* desc)
 */
 bool GME_ZipGetModVers(const std::wstring& zip, std::wstring* vers)
 {
-  std::string zip_name = GME_StrToMbs(zip);
+  std::string zip_name = GME_WcsToUtf8(zip);
   std::string mod_name = GME_FilePathToName(zip_name);
   std::vector<std::string> txt_name;
 
@@ -1025,7 +1080,7 @@ bool GME_TreeBuildFromZip(GMEnode* root, const std::wstring& zip)
   mz_zip_archive_file_stat zf; // zip file stat struct
 
   memset(&za, 0, sizeof(mz_zip_archive));
-  if(!mz_zip_reader_init_file(&za, GME_StrToMbs(zip).c_str(), 0)) {
+  if(!mz_zip_reader_init_file(&za, GME_WcsToUtf8(zip).c_str(), 0)) {
     return false;
   }
 
@@ -1091,7 +1146,7 @@ std::wstring GME_Md5(const std::wstring& str)
   DWORD cbHash = 16;
   char rgbDigits[] = "0123456789abcdef";
 
-  std::string rgbStr = GME_StrToMbs(str);
+  std::string rgbStr = GME_WcsToUtf8(str);
 
   CryptAcquireContext(&hProv,NULL,NULL,PROV_RSA_FULL,CRYPT_VERIFYCONTEXT);
   CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash);
@@ -1204,13 +1259,13 @@ unsigned GME_FileGetXxH32(const std::wstring& src)
     try {
       buff = new ubyte[s];
     } catch(const std::bad_alloc&) {
-      GME_Logs(GME_LOG_ERROR, "GME_FileGetXxH32", "Bad alloc", GME_StrToMbs(src).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_FileGetXxH32", "Bad alloc", GME_WcsToUtf8(src).c_str());
       fclose(fr);
       return 0;
     }
 
     if(fread(buff, 1, s, fr) != s) {
-      GME_Logs(GME_LOG_ERROR, "GME_FileGetXxH32", "Read error", GME_StrToMbs(src).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_FileGetXxH32", "Read error", GME_WcsToUtf8(src).c_str());
       fclose(fr);
       delete [] buff;
       return 0;
