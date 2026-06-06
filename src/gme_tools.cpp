@@ -161,7 +161,7 @@ void GME_StrSplit(const std::string& str, std::vector<std::wstring>* sbstr, cons
     e = str.find_first_of(separator, b);
     if(e > str.size())
       e = str.size();
-    sbstr->push_back(GME_StrToWcs(str.substr(b,e-b)));
+    sbstr->push_back(GME_Utf8ToWcs(str.substr(b,e-b)));
   }
 }
 
@@ -693,7 +693,7 @@ size_t GME_FileGetAsciiContent(const std::wstring& path, std::wstring* content)
     r += fread(buff, 1, fs, fp);
     buff[fs] = '\0';
 
-    *content = GME_StrToWcs(buff);
+    *content = GME_Utf8ToWcs(buff);
     delete [] buff;
 
     fclose(fp);
@@ -1029,7 +1029,7 @@ bool GME_ZipGetModVers(const std::wstring& zip, std::wstring* vers)
         return false;
       }
       buff[zf.m_uncomp_size] = '\0';
-      *vers = GME_StrToWcs(buff);
+      *vers = GME_Utf8ToWcs(buff);
       mz_zip_reader_end(&za);
       delete[] buff;
       return true;

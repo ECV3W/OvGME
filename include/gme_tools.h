@@ -47,7 +47,6 @@ std::wstring GME_StrToWcs(const std::string& str);
 void GME_StrToWcs(std::wstring& wcs, const std::string& str);
 std::wstring GME_Utf8ToWcs(const std::string& str);
 void GME_Utf8ToWcs(std::wstring& wcs, const std::string& str);
-void GME_Utf8ToWcs(std::wstring& wcs, const std::string& str);
 bool GME_StrIsValidFilename(const std::wstring& name);
 void GME_FileList(const wchar_t* origin, std::vector<std::wstring>* lst, const wchar_t* filter);
 void GME_DirList(const wchar_t* origin, std::vector<std::wstring>* lst);

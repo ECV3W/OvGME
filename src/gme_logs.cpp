@@ -18,12 +18,12 @@
 #include "gme_tools.h"
 
 std::wstring g_LogFile;
-std::string g_LogHistory;
+std::wstring g_LogHistory;
 
 /*
   get logs history string
 */
-std::string GME_LogsHistory()
+std::wstring GME_LogsHistory()
 {
   return g_LogHistory;
 }
@@ -50,6 +50,6 @@ void GME_Logs(int level, const char* scope, const char* msg, const char* item)
     break;
   }
 
-  g_LogHistory += buffer;
+  g_LogHistory += GME_Utf8ToWcs(buffer).c_str();
 }
 

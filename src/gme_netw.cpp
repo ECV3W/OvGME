@@ -764,14 +764,14 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
   /* open temporary file for writing */
   std::wstring file_path = path + L"\\";
   //file_path += GME_StrToWcs(GME_NetwDecodeUrl(url.file));
-  file_path += GME_StrToWcs(url.file);
+  file_path += GME_Utf8ToWcs(url.file);
   file_path += L".down";
 
   FILE* fp = _wfopen(file_path.c_str(), L"wb");
   if(!fp) {
     closesocket(sock); WSACleanup();
     if(on_err) on_err(url_str);
-    GME_Logs(GME_LOG_ERROR, "GME_NetwHttpGET", "Body download open error", GME_StrToMbs(file_path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_NetwHttpGET", "Body download open error", GME_WcsToUtf8(file_path).c_str());
     return GME_HTTPGET_ERR_FOP;
   }
 
@@ -782,7 +782,7 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
       closesocket(sock); WSACleanup();
       fclose(fp); GME_FileDelete(file_path);
       if(on_err) on_err(url_str);
-      GME_Logs(GME_LOG_ERROR, "GME_NetwHttpGET", "Body download write error", GME_StrToMbs(file_path).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_NetwHttpGET", "Body download write error", GME_WcsToUtf8(file_path).c_str());
       return GME_HTTPGET_ERR_FWR;
     }
   }
@@ -818,7 +818,7 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
         closesocket(sock); WSACleanup();
         fclose(fp); GME_FileDelete(file_path);
         if(on_err) on_err(url_str);
-        GME_Logs(GME_LOG_ERROR, "GME_NetwHttpGET", "Body download write error", GME_StrToMbs(file_path).c_str());
+        GME_Logs(GME_LOG_ERROR, "GME_NetwHttpGET", "Body download write error", GME_WcsToUtf8(file_path).c_str());
         return GME_HTTPGET_ERR_FWR;
       }
       body_size += recv_size;
@@ -862,7 +862,7 @@ curlRes GME_NetwHttpGETCurl(const char* url_str, const GME_NetwGETOnErr on_err, 
   /* open temporary file for writing */
   std::wstring file_path = path + L"\\";
   //file_path += GME_StrToWcs(GME_NetwDecodeUrl(url.file));
-  file_path += GME_StrToWcs(url.file);
+  file_path += GME_Utf8ToWcs(url.file);
   file_path += L".down";
 
   FILE* fp = _wfopen(file_path.c_str(), L"wb");

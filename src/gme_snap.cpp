@@ -49,7 +49,7 @@ void GME_SnapLogAppend(HWND hent, const wchar_t* out)
 /* threaded function to create snapshot */
 DWORD WINAPI GME_SnapCreate_Th(void* pargs)
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_SnapCreate_Th", "Snapshot create process", GME_StrToMbs(GME_GameGetCurRoot()).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_SnapCreate_Th", "Snapshot create process", GME_WcsToUtf8(GME_GameGetCurRoot()).c_str());
 
   g_SnapProc_Running = true;
 
@@ -187,7 +187,7 @@ DWORD WINAPI GME_SnapCreate_Th(void* pargs)
 /* threaded function to compare snapshot */
 DWORD WINAPI GME_SnapCompare_Th(void* pargs)
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_SnapCompare_Th", "Snapshot compare process", GME_StrToMbs(GME_GameGetCurRoot()).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_SnapCompare_Th", "Snapshot compare process", GME_WcsToUtf8(GME_GameGetCurRoot()).c_str());
 
   g_SnapProc_Running = true;
 
