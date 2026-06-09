@@ -141,20 +141,20 @@ struct GME_ReposMod_Struct
 {
   GME_ReposMod_Struct() {
     memset(name, 0, 255*sizeof(wchar_t));
-    memset(url, 0, 255);
+    url.clear();
     memset(&version, 0, sizeof(GME_ModVers_Struct));
   }
 
   void clear() {
     memset(name, 0, 255*sizeof(wchar_t));
-    memset(url, 0, 255);
+    url.clear();
     memset(&version, 0, sizeof(GME_ModVers_Struct));
     desc.clear();
   }
 
   wchar_t name[255];
 
-  char url[255];
+  std::string url;
 
   GME_ModVers_Struct version;
 
@@ -593,7 +593,7 @@ bool GME_RepoParseXml(const std::wstring& xml, std::vector<GME_ReposMod_Struct>*
       reposmod.clear();
 
       wcscpy(reposmod.name, child.attribute(L"name").value());
-      wcstombs(reposmod.url, child.attribute(L"url").value(), wcslen(child.attribute(L"url").value()));
+      GME_WcsToUtf8(reposmod.url, child.attribute(L"url").value());
       reposmod.version = GME_RepoParseVers(child.attribute(L"version").value());
 
       /* check for description */
@@ -833,9 +833,9 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
     SendMessage(hpb, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
     EnableWindow(GetDlgItem(g_hwndRepUpd, BTN_CANCEL), true);
     GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Downloading...");
-    GME_Logs(GME_LOG_NOTICE, "GME_RepoQueryDnl_Th", "Downloading", g_GME_ReposDnl_List[i].url);
+    GME_Logs(GME_LOG_NOTICE, "GME_RepoQueryDnl_Th", "Downloading", g_GME_ReposDnl_List[i].url.c_str());
 
-    curl_result = GME_NetwHttpGETCurl(g_GME_ReposDnl_List[i].url, GME_RepoDnl_OnErr, GME_RepoDnl_OnDnlCurl, GME_RepoDnl_OnSav, GME_GameGetCurModsPath());
+    curl_result = GME_NetwHttpGETCurl(g_GME_ReposDnl_List[i].url.c_str(), GME_RepoDnl_OnErr, GME_RepoDnl_OnDnlCurl, GME_RepoDnl_OnSav, GME_GameGetCurModsPath());
     if(curl_result.res)
     {
       /* error received from curl */
