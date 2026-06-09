@@ -256,6 +256,7 @@ std::string GME_WcsToUtf8(const std::wstring& str)
 void GME_WcsToUtf8(std::string& cs, const std::wstring& str)
 {
   int size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, nullptr, 0, nullptr, nullptr);
+  cs.resize(size - 1);
   WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, cs.data(), size, nullptr, nullptr);
 }
 
