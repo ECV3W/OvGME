@@ -63,6 +63,7 @@
 typedef unsigned char ubyte;
 
 #include "../resource.h"
+#include "version.h"
 
 #define GPL_HEADER L"\
 This program is free software: you can redistribute it and/or modify \
@@ -78,9 +79,6 @@ along with this program. If not, see http://www.gnu.org/licenses/"
 
 // global defines
 #define GME_APP_NAME      L"OvGME Third wing Edition"
-#define GME_APP_MAJOR     1
-#define GME_APP_MINOR     8
-#define GME_APP_REVIS     1
 #define GME_APP_DATE      L"October 2025"
 
 /* handle for folder changes tracking */

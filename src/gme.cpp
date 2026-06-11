@@ -44,6 +44,6 @@ wchar_t version[128];
 
 wchar_t* GME_GetVersionString()
 {
-  swprintf(version, L"%d.%d.%d 3rd Wing Edition - %s", GME_APP_MAJOR, GME_APP_MINOR, GME_APP_REVIS, GME_APP_DATE);
+  swprintf(version, L"%d.%d.%d.%d 3rd Wing Edition - %s", GME_APP_MAJOR, GME_APP_MINOR, GME_APP_REVIS, GME_APP_PATCH, GME_APP_DATE);
   return version;
 }
