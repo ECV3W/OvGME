@@ -669,7 +669,7 @@ size_t GME_FileGetAsciiContent(const std::wstring& path, std::wstring* content)
 {
   size_t r = 0;
   long fs = 0;
-  char* buff = NULL;
+  std::string buff;
 
   FILE* fp = _wfopen(path.c_str(), L"rb");
   if(fp) {
@@ -678,26 +678,19 @@ size_t GME_FileGetAsciiContent(const std::wstring& path, std::wstring* content)
     fs = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    try {
-      buff = new char[fs+1];
-    } catch(const std::bad_alloc&) {
-      GME_Logs(GME_LOG_ERROR, "GME_FileGetAsciiContent", "Bad alloc", std::to_string(fs+1).c_str());
+    if (fs <= 0)
+    {
       fclose(fp);
-      return false;
-    }
-    if(buff == NULL) {
-      GME_Logs(GME_LOG_ERROR, "GME_FileGetAsciiContent", "Bad alloc (* == NULL)", std::to_string(fs+1).c_str());
-      fclose(fp);
-      return false;
+      return 0;
     }
 
-    r += fread(buff, 1, fs, fp);
-    buff[fs] = '\0';
+    buff.resize(fs);
+
+    r = fread(buff.data(), 1, fs, fp);
+    fclose(fp);
+    buff.resize(r);
 
     *content = GME_Utf8ToWcs(buff);
-    delete [] buff;
-
-    fclose(fp);
   }
   return r;
 }
@@ -940,7 +933,9 @@ bool GME_ZipGetModDesc(const std::wstring& zip, std::wstring* desc)
     return false;
   }
 
-  char* buff = NULL;
+  //char* buff = NULL;
+
+  std::string buff;
   int i;
 
   for(unsigned k = 0; k < txt_name.size(); k++) {
@@ -950,27 +945,17 @@ bool GME_ZipGetModDesc(const std::wstring& zip, std::wstring* desc)
         mz_zip_reader_end(&za);
         return false;
       }
-      try {
-        buff = new char[zf.m_uncomp_size+1];
-      } catch(const std::bad_alloc&) {
-        GME_Logs(GME_LOG_ERROR, "GME_ZipGetModDesc", "Bad alloc", std::to_string(zf.m_uncomp_size+1).c_str());
+
+      buff.resize(zf.m_uncomp_size);
+      if(!mz_zip_reader_extract_to_mem(&za, i, buff.data(), zf.m_uncomp_size+1, 0)) {
         mz_zip_reader_end(&za);
+        //delete[] buff;
         return false;
       }
-      if(buff == NULL) {
-        GME_Logs(GME_LOG_ERROR, "GME_ZipGetModDesc", "Bad alloc (* == NULL)", std::to_string(zf.m_uncomp_size+1).c_str());
-        mz_zip_reader_end(&za);
-        return false;
-      }
-      if(!mz_zip_reader_extract_to_mem(&za, i, buff, zf.m_uncomp_size+1, 0)) {
-        mz_zip_reader_end(&za);
-        delete[] buff;
-        return false;
-      }
-      buff[zf.m_uncomp_size] = '\0';
-      *desc = GME_StrToWcs(buff);
+      
+      *desc = GME_Utf8ToWcs(buff);
       mz_zip_reader_end(&za);
-      delete[] buff;
+    
       return true;
     }
   }
