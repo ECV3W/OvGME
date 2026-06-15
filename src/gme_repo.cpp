@@ -517,7 +517,8 @@ bool GME_RepoChkDesc()
     if(SendMessageW(hlv, LVM_GETITEMSTATE, i, LVIS_SELECTED)) {
 
       if(!sel_cnt) {
-        SendMessage(het, WM_SETTEXT, 0, (LPARAM)g_GME_ReposMod_List[i].desc.c_str());
+        std::wstring wsdesc = GME_Utf8ToWcs(g_GME_ReposMod_List[i].desc);
+        SendMessageW(het, WM_SETTEXT, 0, (LPARAM)wsdesc.c_str());
         sel_cnt++;
       } else {
         SendMessageW(het, WM_SETTEXT, 0, (LPARAM)L"[Multiple selection]");
