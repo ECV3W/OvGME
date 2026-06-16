@@ -2,8 +2,8 @@
 
 #define GME_APP_MAJOR     1
 #define GME_APP_MINOR     8
-#define GME_APP_REVIS     1
-#define GME_APP_PATCH     3
+#define GME_APP_REVIS     2
+#define GME_APP_PATCH     0
 
 #define STRINDIRECT(x) #x
 #define STRVERSION(x) STRINDIRECT(x)

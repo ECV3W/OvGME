@@ -1,3 +1,9 @@
+OvGME 1.8.2.0, 2026-16-06
+
+- Adding support for unicode in all the program
+- Adding support for unicode in miniz for be able to read non-latin named .zip
+- Extended support for decoding and encoding .xml files
+
 OvGME 1.8.1.3, 2026-09-04
 
 - Fix crash occure when an error appear while getting repository's xml file from a server
