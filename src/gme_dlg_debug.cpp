@@ -27,7 +27,7 @@ void GME_DlgDebugInit()
 
     SendMessage(GetDlgItem(g_hwndRepXts, ENT_OUTPUT), WM_SETFONT, (WPARAM)courier, 1);
 
-    SetDlgItemTextA(g_hwndDebug, ENT_OUTPUT, GME_LogsHistory().c_str());
+    SetDlgItemTextW(g_hwndDebug, ENT_OUTPUT, GME_LogsHistory().c_str());
 }
 
 /*

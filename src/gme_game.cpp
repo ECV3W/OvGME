@@ -26,33 +26,9 @@ int g_GameCur_Id = -1;
 
 bool GME_GameSortCfgComp(const GME_GameCfg_Struct& a_cfg, const GME_GameCfg_Struct& b_cfg)
 {
-  // convert to ASCII
-  std::string a_title = GME_StrToMbs(a_cfg.title);
-  std::string b_title = GME_StrToMbs(b_cfg.title);
+  int result = CompareStringEx(LOCALE_NAME_USER_DEFAULT, NORM_IGNORECASE, a_cfg.title, -1, b_cfg.title, -1, nullptr, nullptr, 0);
 
-  // Convert to upper case to compare ASCII values
-  GME_StrToUpper(a_title);
-  GME_StrToUpper(b_title);
-
-  // test against the shorter string
-  size_t l = a_title.size() > b_title.size() ? b_title.size() : a_title.size();
-
-  // test for ASCII value greater than the other
-  for(unsigned i = 0; i < l; i++) {
-    if(a_title[i] != b_title[i]) {
-      if(a_title[i] < b_title[i]) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-  }
-
-  // tested strings portions are equals, we sort by string size
-  if(a_title.size() < b_title.size())
-    return true;
-
-  return false;
+  return result == CSTR_LESS_THAN;
 }
 
 void GME_GameSortCfgList()
@@ -190,7 +166,7 @@ bool GME_GameWritCfg(const std::wstring& path, const GME_GameCfg_Struct* data)
 */
 bool GME_GameNewCfg(const std::wstring& title, const std::wstring& root, const std::wstring& mods, bool use_custom_back, const std::wstring& backp)
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_GameNewCfg", "Create new config", GME_StrToMbs(root).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_GameNewCfg", "Create new config", GME_WcsToUtf8(root).c_str());
 
   std::wstring conf_path = GME_GetAppdataPath() + L"\\" + GME_Md5(root);
 
@@ -271,19 +247,19 @@ bool GME_GameNewCfg(const std::wstring& title, const std::wstring& root, const s
     /* create game config dir */
     if(!GME_DirCreate(conf_path)) {
       GME_DialogError(g_hwndAddGame, L"Unable to create configuration folder.");
-      GME_Logs(GME_LOG_ERROR, "GME_GameNewCfg", "Unable to create config folder", GME_StrToMbs(conf_path).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_GameNewCfg", "Unable to create config folder", GME_WcsToUtf8(conf_path).c_str());
       return false;
     }
     /* write config file */
     if(!GME_GameWritCfg(conf_path, &data)) {
       GME_DialogError(g_hwndAddGame, L"Unable to write configuration file.");
-      GME_Logs(GME_LOG_ERROR, "GME_GameNewCfg", "Unable to write config file", GME_StrToMbs(conf_path).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_GameNewCfg", "Unable to write config file", GME_WcsToUtf8(conf_path).c_str());
       return false;
     }
     /* create backups dir */
     if(!GME_DirCreate(std::wstring(conf_path + L"\\backups"))) {
       GME_DialogError(g_hwndAddGame, L"Unable to create backup folder.");
-      GME_Logs(GME_LOG_ERROR, "GME_GameNewCfg", "Unable to create backup subfolder", GME_StrToMbs(conf_path).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_GameNewCfg", "Unable to create backup subfolder", GME_WcsToUtf8(conf_path).c_str());
       return false;
     }
   }
@@ -302,7 +278,7 @@ bool GME_GameNewCfg(const std::wstring& title, const std::wstring& root, const s
 */
 bool GME_GameRemCurCfg()
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_GameRemCurCfg", "Delete current config", GME_StrToMbs(GME_GameGetCurTitle()).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_GameRemCurCfg", "Delete current config", GME_WcsToUtf8(GME_GameGetCurTitle()).c_str());
 
   /* confirmation dialog */
   if(IDYES != GME_DialogWarningConfirm(g_hwndMain, L"Are you sure you want to remove config '" + GME_GameGetCurTitle() + L"' from management list ?")) {
@@ -336,7 +312,7 @@ bool GME_GameRemCurCfg()
 */
 bool GME_GameEditCurCfg(const std::wstring& title, const std::wstring& mods, bool use_custom_back, const std::wstring& backp)
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_GameEditCurCfg", "Edit current config", GME_StrToMbs(GME_GameGetCurTitle()).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_GameEditCurCfg", "Edit current config", GME_WcsToUtf8(GME_GameGetCurTitle()).c_str());
 
   /* check if game title already exists */
   for(int i = 0; i < (int)g_GameCfg_List.size(); i++) {
@@ -412,7 +388,7 @@ bool GME_GameEditCurCfg(const std::wstring& title, const std::wstring& mods, boo
   /* write config file */
   if(!GME_GameWritCfg(conf_path, &data)) {
     GME_DialogError(g_hwndEdiGame, L"Unable to write configuration file.");
-    GME_Logs(GME_LOG_ERROR, "GME_GameEditCurCfg", "Unable to write config file", GME_StrToMbs(conf_path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_GameEditCurCfg", "Unable to write config file", GME_WcsToUtf8(conf_path).c_str());
     return true;
   }
 
@@ -430,7 +406,7 @@ bool GME_GameEditCurCfg(const std::wstring& title, const std::wstring& mods, boo
 */
 bool GME_GameSelectCfg(const std::wstring& title)
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_GameSelectCfg", "Selecting config", GME_StrToMbs(title).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_GameSelectCfg", "Selecting config", GME_WcsToUtf8(title).c_str());
 
   /* no game selected */
   g_GameCur_Id = -1;
@@ -489,7 +465,7 @@ bool GME_GameSelectCfg(const std::wstring& title)
 */
 bool GME_GameUpdList()
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_GameUpdList", "Updating config list", GME_StrToMbs(GME_GetAppdataPath()).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_GameUpdList", "Updating config list", GME_WcsToUtf8(GME_GetAppdataPath()).c_str());
 
   HWND hcb = GetDlgItem(g_hwndMain, CMB_GAMELIST);
 
@@ -545,7 +521,7 @@ bool GME_GameUpdList()
           }
 
           g_GameCfg_List.push_back(cfg_data);
-          GME_Logs(GME_LOG_NOTICE, "GME_GameUpdList", "Retrieving config", GME_StrToMbs(fdw.cFileName).c_str());
+          GME_Logs(GME_LOG_NOTICE, "GME_GameUpdList", "Retrieving config", GME_WcsToUtf8(fdw.cFileName).c_str());
           fclose(cfg_fp);
         }
       }

@@ -130,13 +130,13 @@ void GME_ModsUndoMod(HWND hpb, const std::vector<GME_BckEntry_Struct>& bckentry_
       if(bckentry_list[i].isdir) {
         if(GME_IsDir(dst_path)) {
           if(!GME_DirRemove(dst_path)) {
-            GME_Logs(GME_LOG_WARNING, "GME_ModsUndoMod", "Unable to delete dir", GME_StrToMbs(dst_path).c_str());
+            GME_Logs(GME_LOG_WARNING, "GME_ModsUndoMod", "Unable to delete dir", GME_WcsToUtf8(dst_path).c_str());
           }
         }
       } else {
         if(GME_IsFile(dst_path)) {
           if(!GME_FileDelete(dst_path)) {
-            GME_Logs(GME_LOG_WARNING, "GME_ModsUndoMod", "Unable to delete file", GME_StrToMbs(dst_path).c_str());
+            GME_Logs(GME_LOG_WARNING, "GME_ModsUndoMod", "Unable to delete file", GME_WcsToUtf8(dst_path).c_str());
           }
         }
       }
@@ -147,7 +147,7 @@ void GME_ModsUndoMod(HWND hpb, const std::vector<GME_BckEntry_Struct>& bckentry_
         src_path = back_path + bckentry_list[i].path;
         /* copy file, overwrite dest */
         if(!GME_FileCopy(src_path, dst_path, true)) {
-          GME_Logs(GME_LOG_WARNING, "GME_ModsUndoMod", "File copy failed", GME_StrToMbs(dst_path).c_str());
+          GME_Logs(GME_LOG_WARNING, "GME_ModsUndoMod", "File copy failed", GME_WcsToUtf8(dst_path).c_str());
         }
         /* step progress bar */
         SendMessage(hpb, PBM_STEPIT, 0, 0);
@@ -166,7 +166,7 @@ void GME_ModsUndoMod(HWND hpb, const std::vector<GME_BckEntry_Struct>& bckentry_
 */
 void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_ModsApplyMod", "Applying mod", GME_StrToMbs(name).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_ModsApplyMod", "Applying mod", GME_WcsToUtf8(name).c_str());
 
   bool is_zip_mod;
 
@@ -317,14 +317,14 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
           for(unsigned k = 0; k < olap_flist.size(); k++) olap_msg += L"  -" + olap_flist[k] + L"\n";
           olap_msg += L"\nThis will alter already installed Mod files, do you want to install it anyway ?";
 
-          GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod overlaps with", GME_StrToMbs(fdw.cFileName).c_str());
+          GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod overlaps with", GME_WcsToUtf8(fdw.cFileName).c_str());
 
           /* show confirmation dialog */
           if(IDYES != GME_DialogWarningConfirm(g_hwndMain, olap_msg)) {
             delete mod_tree;
             FindClose(hnd);
             SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
-            GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod apply canceled by user", GME_StrToMbs(name).c_str());
+            GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod apply canceled by user", GME_WcsToUtf8(name).c_str());
             return;
           }
         }
@@ -355,7 +355,7 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
         if(!GME_IsDir(dst_path)) {
           if(!GME_DirCreate(dst_path)) {
             GME_DialogError(g_hwndMain, L"Backup creation error for Mod '" + name + L"', the Mod cannot be installed.");
-            GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Unable to backup dir", GME_StrToMbs(dst_path).c_str());
+            GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Unable to backup dir", GME_WcsToUtf8(dst_path).c_str());
             GME_ModsUndoMod(hpb, bckentry_list);
             delete mod_tree;
             return;
@@ -374,7 +374,7 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
         /* copy file, no overwrite dest */
         if(!GME_FileCopy(src_path, dst_path, false)) {
           GME_DialogError(g_hwndMain, L"Backup creation error for Mod '" + name + L"', the Mod cannot be installed.");
-          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Unable to backup file", GME_StrToMbs(src_path).c_str());
+          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Unable to backup file", GME_WcsToUtf8(src_path).c_str());
           GME_ModsUndoMod(hpb, bckentry_list);
           delete mod_tree;
           return;
@@ -389,7 +389,7 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
     bckentry_list.push_back(bckentry);
 
     if(g_ModsProc_Cancel) {
-      GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod apply canceled by user", GME_StrToMbs(name).c_str());
+      GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod apply canceled by user", GME_WcsToUtf8(name).c_str());
       delete mod_tree;
       SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
       GME_ModsUndoMod(hpb, bckentry_list);
@@ -419,9 +419,9 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
 
   if(is_zip_mod) {
     memset(&za, 0, sizeof(mz_zip_archive));
-    if(!mz_zip_reader_init_file(&za, GME_StrToMbs(mods_path + L"\\" + name + L".zip").c_str(), 0)) {
+    if(!mz_zip_reader_init_file(&za, GME_WcsToUtf8(mods_path + L"\\" + name + L".zip").c_str(), 0)) {
       GME_DialogError(g_hwndMain, L"Mod-Archive '" + name + L"' Zip extraction error, the Mod cannot be installed.");
-      GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Zip reader init (extraction) failed", GME_StrToMbs(name).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Zip reader init (extraction) failed", GME_WcsToUtf8(name).c_str());
       delete mod_tree;
       SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
       GME_ModsUndoMod(hpb, bckentry_list);
@@ -440,7 +440,7 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
         if(!GME_DirCreate(dst_path)) {
           if(is_zip_mod) mz_zip_reader_end(&za);
           GME_DialogError(g_hwndMain, L"Create directory error for Mod '" + name + L"', the Mod cannot be installed.");
-          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Unable to create dir", GME_StrToMbs(dst_path).c_str());
+          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Unable to create dir", GME_WcsToUtf8(dst_path).c_str());
           delete mod_tree;
           SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
           GME_FileDelete(bck_file);
@@ -453,10 +453,10 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
       if(is_zip_mod) {
 
         /* extract to file */
-        if(!mz_zip_reader_extract_to_file(&za, mod_tree->currChild()->getId(), GME_StrToMbs(dst_path).c_str(), 0)) {
+        if(!mz_zip_reader_extract_to_file(&za, mod_tree->currChild()->getId(), GME_WcsToUtf8(dst_path).c_str(), 0)) {
           mz_zip_reader_end(&za);
           GME_DialogError(g_hwndMain, L"Mod-Archive '" + name + L"' Zip extraction error, the Mod cannot be installed.");
-          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Zip extract to file (extraction) failed", GME_StrToMbs(mod_tree->currChild()->getPath(true)).c_str());
+          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "Zip extract to file (extraction) failed", GME_WcsToUtf8(mod_tree->currChild()->getPath(true)).c_str());
           delete mod_tree;
           SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
           GME_FileDelete(bck_file);
@@ -469,7 +469,7 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
         if(!GME_FileCopy(mod_tree->currChild()->getSource(), dst_path, true)) {
           mz_zip_reader_end(&za);
           GME_DialogError(g_hwndMain, L"File copy error for Mod '" + name + L"', the Mod cannot be installed.");
-          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "File copy failed", GME_StrToMbs(mod_tree->currChild()->getSource()).c_str());
+          GME_Logs(GME_LOG_ERROR, "GME_ModsApplyMod", "File copy failed", GME_WcsToUtf8(mod_tree->currChild()->getSource()).c_str());
           delete mod_tree;
           SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
           GME_FileDelete(bck_file);
@@ -482,7 +482,7 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
     }
 
     if(g_ModsProc_Cancel) {
-      GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod apply canceled by user", GME_StrToMbs(name).c_str());
+      GME_Logs(GME_LOG_WARNING, "GME_ModsApplyMod", "Mod apply canceled by user", GME_WcsToUtf8(name).c_str());
       if(is_zip_mod) mz_zip_reader_end(&za);
       delete mod_tree;
       SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
@@ -508,7 +508,7 @@ void GME_ModsApplyMod(HWND hpb, const std::wstring& name, int type)
 */
 void GME_ModsRestoreMod(HWND hpb, const std::wstring& name)
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_ModsRestoreMod", "Restoring mod", GME_StrToMbs(name).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_ModsRestoreMod", "Restoring mod", GME_WcsToUtf8(name).c_str());
 
   std::wstring dst_path;
   std::wstring src_path;
@@ -562,7 +562,7 @@ void GME_ModsRestoreMod(HWND hpb, const std::wstring& name)
       if(bckentry_list[i].isdir) {
         if(GME_IsDir(dst_path)) {
           if(!GME_DirRemove(dst_path)) {
-            GME_Logs(GME_LOG_WARNING, "GME_ModsRestoreMod", "Unable to delete dir", GME_StrToMbs(dst_path).c_str());
+            GME_Logs(GME_LOG_WARNING, "GME_ModsRestoreMod", "Unable to delete dir", GME_WcsToUtf8(dst_path).c_str());
             got_error = true;
           }
         } else {
@@ -570,11 +570,11 @@ void GME_ModsRestoreMod(HWND hpb, const std::wstring& name)
       } else {
         if(GME_IsFile(dst_path)) {
           if(!GME_FileDelete(dst_path)) {
-            GME_Logs(GME_LOG_WARNING, "GME_ModsRestoreMod", "Unable to delete file", GME_StrToMbs(dst_path).c_str());
+            GME_Logs(GME_LOG_WARNING, "GME_ModsRestoreMod", "Unable to delete file", GME_WcsToUtf8(dst_path).c_str());
             got_error = true;
           }
         } else {
-          GME_Logs(GME_LOG_NOTICE, "GME_ModsRestoreMod", "Unable to delete file (it does not exists)", GME_StrToMbs(dst_path).c_str());
+          GME_Logs(GME_LOG_NOTICE, "GME_ModsRestoreMod", "Unable to delete file (it does not exists)", GME_WcsToUtf8(dst_path).c_str());
         }
       }
     } else {
@@ -584,7 +584,7 @@ void GME_ModsRestoreMod(HWND hpb, const std::wstring& name)
         src_path = back_path + bckentry_list[i].path;
         /* copy file, overwrite dest */
         if(!GME_FileCopy(src_path, dst_path, true)) {
-          GME_Logs(GME_LOG_WARNING, "GME_ModsRestoreMod", "File copy failed", GME_StrToMbs(dst_path).c_str());
+          GME_Logs(GME_LOG_WARNING, "GME_ModsRestoreMod", "File copy failed", GME_WcsToUtf8(dst_path).c_str());
           got_error = true;
         }
       }
@@ -608,7 +608,7 @@ void GME_ModsRestoreMod(HWND hpb, const std::wstring& name)
 */
 void GME_ModsCleanBackup()
 {
-  GME_Logs(GME_LOG_NOTICE, "GME_ModsCleanBackup", "Cleaning backup tree", GME_StrToMbs(GME_GameGetCurBackPath()).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_ModsCleanBackup", "Cleaning backup tree", GME_WcsToUtf8(GME_GameGetCurBackPath()).c_str());
 
   std::wstring conf_path = GME_GameGetCurConfPath();
   std::wstring back_path = GME_GameGetCurBackPath();
@@ -649,7 +649,7 @@ void GME_ModsCleanBackup()
           }
           fclose(fp);
         } else {
-          GME_Logs(GME_LOG_ERROR, "GME_ModsCleanBackup", "Unable to open backup file", GME_StrToMbs(bck_file).c_str());
+          GME_Logs(GME_LOG_ERROR, "GME_ModsCleanBackup", "Unable to open backup file", GME_WcsToUtf8(bck_file).c_str());
         }
       }
     } while(FindNextFileW(hnd, &fdw));
@@ -686,7 +686,7 @@ void GME_ModsCleanBackup()
       if(!is_depend) {
         dst_path = back_path + back_tree->currChild()->getPath(true);
         if(!GME_FileDelete(dst_path)) {
-          GME_Logs(GME_LOG_WARNING, "GME_ModsCleanBackup", "Unable to delete file", GME_StrToMbs(dst_path).c_str());
+          GME_Logs(GME_LOG_WARNING, "GME_ModsCleanBackup", "Unable to delete file", GME_WcsToUtf8(dst_path).c_str());
         }
       }
     } else {
@@ -704,7 +704,7 @@ void GME_ModsCleanBackup()
     dst_path = back_path + rmdir_list[i];
     if(PathIsDirectoryEmptyW(dst_path.c_str())) {
       if(!GME_DirRemove(dst_path)) {
-        GME_Logs(GME_LOG_WARNING, "GME_ModsCleanBackup", "Unable to delete dir", GME_StrToMbs(dst_path).c_str());
+        GME_Logs(GME_LOG_WARNING, "GME_ModsCleanBackup", "Unable to delete dir", GME_WcsToUtf8(dst_path).c_str());
       }
     }
   }
@@ -884,7 +884,7 @@ bool GME_ModsImport()
       /* copy file to mods stock folder */
       dst = GME_GameGetCurModsPath() + L"\\" + fmod_list[i];
       if(!GME_FileCopy(src, dst, true)) {
-        GME_Logs(GME_LOG_ERROR, "GME_ModsImport", "Unable to copy file ", GME_StrToMbs(dst).c_str());
+        GME_Logs(GME_LOG_ERROR, "GME_ModsImport", "Unable to copy file ", GME_WcsToUtf8(dst).c_str());
       }
     } else {
       GME_DialogWarning(g_hwndMain, L"The file '" + fmod_list[i] + L"' is not a valid Mod-Archive and will not be imported.");
@@ -1050,7 +1050,7 @@ void GME_ModsDeleteCur()
 
     std::wstring mod_path = GME_GameGetCurModsPath() + L"\\" + name_list[i];
 
-    GME_Logs(3, "GME_ModsDeleteCur", "Deleting mod", GME_StrToMbs(mod_path).c_str());
+    GME_Logs(3, "GME_ModsDeleteCur", "Deleting mod", GME_WcsToUtf8(mod_path).c_str());
 
     switch(type_list[i])
     {
@@ -1201,7 +1201,7 @@ bool GME_ModsUpdList()
             type_list.push_back(1);
           }
         } else {
-          GME_Logs(GME_LOG_WARNING, "GME_ModsUpdList", "Zip file is not a valid Mod-Archive:", GME_StrToMbs(fdw.cFileName).c_str());
+          GME_Logs(GME_LOG_WARNING, "GME_ModsUpdList", "Zip file is not a valid Mod-Archive:", GME_WcsToUtf8(fdw.cFileName).c_str());
         }
       }
     } while(FindNextFileW(hnd, &fdw));
@@ -1275,7 +1275,7 @@ bool GME_ModsUpdList()
 */
 DWORD WINAPI GME_ModsUninstall_Th(void* args)
 {
-  GME_Logs(3, "GME_ModsUninstall_Th", "Uninstall thread Start", GME_StrToMbs(GME_GameGetCurTitle()).c_str());
+  GME_Logs(3, "GME_ModsUninstall_Th", "Uninstall thread Start", GME_WcsToUtf8(GME_GameGetCurTitle()).c_str());
 
   std::wstring status = L"restoring backups for config '" + GME_GameGetCurTitle() + L"'...";
   SetDlgItemTextW(g_hwndUninst, TXT_UNINST_GAME, status.c_str());
@@ -1307,7 +1307,7 @@ DWORD WINAPI GME_ModsUninstall_Th(void* args)
 
   EndDialog(g_hwndUninst, 0);
 
-  GME_Logs(3, "GME_ModsUninstall_Th", "Uninstall thread Done", GME_StrToMbs(GME_GameGetCurTitle()).c_str());
+  GME_Logs(3, "GME_ModsUninstall_Th", "Uninstall thread Done", GME_WcsToUtf8(GME_GameGetCurTitle()).c_str());
 
   return 0;
 }
@@ -1379,10 +1379,10 @@ DWORD WINAPI GME_ModsMake_Th(void* args)
   mz_zip_archive za; // Zip archive struct
 
   memset(&za, 0, sizeof(mz_zip_archive));
-  if(!mz_zip_writer_init_file(&za, GME_StrToMbs(tmp_path).c_str(), 4096)) {
+  if(!mz_zip_writer_init_file(&za, GME_WcsToUtf8(tmp_path).c_str(), 4096)) {
     delete zip_root;
     delete arg;
-    GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_init_file failed", GME_StrToMbs(tmp_path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_init_file failed", GME_WcsToUtf8(tmp_path).c_str());
     GME_DialogError(g_hwndNewAMod, L"An error occurred during Mod-Archive creation.");
     ShowWindow(GetDlgItem(g_hwndNewAMod, BTN_CREATE), true);
     ShowWindow(GetDlgItem(g_hwndNewAMod, IDCANCEL), false);
@@ -1397,7 +1397,7 @@ DWORD WINAPI GME_ModsMake_Th(void* args)
   zip_root->initTraversal();
   while(zip_root->nextChild()) {
 
-    GME_StrToMbs(a_name, zip_root->currChild()->getPath());
+    GME_WcsToUtf8(a_name, zip_root->currChild()->getPath());
     a_name.erase(0,1); /* remove the first \ at the begining of the path */
     /* convert from MS standard path separator \ to THE STANDARD */
     std::replace(a_name.begin(), a_name.end(), '\\', '/');
@@ -1409,7 +1409,7 @@ DWORD WINAPI GME_ModsMake_Th(void* args)
         delete zip_root;
         delete arg;
         GME_FileDelete(tmp_path);
-        GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_add_mem (dir) failed", GME_StrToMbs(tmp_path).c_str());
+        GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_add_mem (dir) failed", GME_WcsToUtf8(tmp_path).c_str());
         GME_DialogError(g_hwndNewAMod, L"An error occurred during Mod-Archive creation.");
         ShowWindow(GetDlgItem(g_hwndNewAMod, BTN_CREATE), true);
         ShowWindow(GetDlgItem(g_hwndNewAMod, IDCANCEL), false);
@@ -1420,13 +1420,13 @@ DWORD WINAPI GME_ModsMake_Th(void* args)
     } else {
       /* read source file */
       if(!zip_root->currChild()->getSource().empty()) {
-        GME_StrToMbs(f_name, zip_root->currChild()->getSource());
+        GME_WcsToUtf8(f_name, zip_root->currChild()->getSource());
         if(!mz_zip_writer_add_file(&za, a_name.c_str(), f_name.c_str(), NULL, 0, arg->zip_level)) {
           mz_zip_writer_end(&za);
           delete zip_root;
           delete arg;
           GME_FileDelete(tmp_path);
-          GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_add_file failed", GME_StrToMbs(tmp_path).c_str());
+          GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_add_file failed", GME_WcsToUtf8(tmp_path).c_str());
           GME_DialogError(g_hwndNewAMod, L"An error occurred during Mod-Archive creation.");
           ShowWindow(GetDlgItem(g_hwndNewAMod, BTN_CREATE), true);
           ShowWindow(GetDlgItem(g_hwndNewAMod, IDCANCEL), false);
@@ -1440,7 +1440,7 @@ DWORD WINAPI GME_ModsMake_Th(void* args)
           delete zip_root;
           delete arg;
           GME_FileDelete(tmp_path);
-          GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_add_mem (mem) failed", GME_StrToMbs(tmp_path).c_str());
+          GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "mz_zip_writer_add_mem (mem) failed", GME_WcsToUtf8(tmp_path).c_str());
           GME_DialogError(g_hwndNewAMod, L"An error occurred during Mod-Archive creation.");
           ShowWindow(GetDlgItem(g_hwndNewAMod, BTN_CREATE), true);
           ShowWindow(GetDlgItem(g_hwndNewAMod, IDCANCEL), false);
@@ -1485,7 +1485,7 @@ DWORD WINAPI GME_ModsMake_Th(void* args)
   /* rename temporary file to final name */
   if(!GME_FileMove(tmp_path, zip_path, true)) {
     GME_FileDelete(tmp_path);
-    GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "Unable to rename file", GME_StrToMbs(zip_path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_ModsMake_Th", "Unable to rename file", GME_WcsToUtf8(zip_path).c_str());
     GME_DialogError(g_hwndNewAMod, L"An error occurred during Mod-Archive creation.");
     ShowWindow(GetDlgItem(g_hwndNewAMod, BTN_CREATE), true);
     ShowWindow(GetDlgItem(g_hwndNewAMod, IDCANCEL), false);
@@ -1572,7 +1572,7 @@ void GME_ModsMakeArchive(const std::wstring& src_dir, const std::wstring& dst_pa
   zip_path = stripped_zip_path + L"\\" + zip_name;
 
   std::string txt_data;
-  if(!desc.empty()) txt_data = GME_StrToMbs(desc);
+  if(!desc.empty()) txt_data = GME_WcsToUtf8(desc);
   std::string ver_data;
   char vbuff[64];
   sprintf(vbuff, "%d.%d.%d", vmaj, vmin, vrev);
@@ -1674,7 +1674,7 @@ void GME_ModsMakeArchiveCur(const std::wstring& desc, int vmaj, int vmin, int vr
   std::wstring ver_name = L"VERSION.txt";
   std::wstring zip_path = dst_path + L"\\" + zip_name;
   std::string txt_data;
-  if(!desc.empty()) txt_data = GME_StrToMbs(desc);
+  if(!desc.empty()) txt_data = GME_WcsToUtf8(desc);
   std::string ver_data;
   char vbuff[64];
   sprintf(vbuff, "%d.%d.%d", vmaj, vmin, vrev);

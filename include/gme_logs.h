@@ -22,7 +22,7 @@
 
 #include "gme.h"
 
-std::string GME_LogsHistory();
+std::wstring GME_LogsHistory();
 void GME_Logs(int level, const char* scope, const char* msg, const char* item);
 
 #endif // GME_LOGS_H_INCLUDED

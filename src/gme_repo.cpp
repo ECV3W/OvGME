@@ -141,20 +141,20 @@ struct GME_ReposMod_Struct
 {
   GME_ReposMod_Struct() {
     memset(name, 0, 255*sizeof(wchar_t));
-    memset(url, 0, 255);
+    url.clear();
     memset(&version, 0, sizeof(GME_ModVers_Struct));
   }
 
   void clear() {
     memset(name, 0, 255*sizeof(wchar_t));
-    memset(url, 0, 255);
+    url.clear();
     memset(&version, 0, sizeof(GME_ModVers_Struct));
     desc.clear();
   }
 
   wchar_t name[255];
 
-  char url[255];
+  std::string url;
 
   GME_ModVers_Struct version;
 
@@ -333,7 +333,7 @@ bool GME_RepoAddUrl(const char* url)
   }
 
   if(!GME_NetwIsUrl(url)) {
-    GME_DialogError(g_hwndRepConf, L"'" + GME_StrToWcs(url) + L"' does not appear as a valid URL.");
+    GME_DialogError(g_hwndRepConf, L"'" + GME_Utf8ToWcs(url) + L"' does not appear as a valid URL.");
     return false;
   }
 
@@ -517,7 +517,8 @@ bool GME_RepoChkDesc()
     if(SendMessageW(hlv, LVM_GETITEMSTATE, i, LVIS_SELECTED)) {
 
       if(!sel_cnt) {
-        SendMessage(het, WM_SETTEXT, 0, (LPARAM)g_GME_ReposMod_List[i].desc.c_str());
+        std::wstring wsdesc = GME_Utf8ToWcs(g_GME_ReposMod_List[i].desc);
+        SendMessageW(het, WM_SETTEXT, 0, (LPARAM)wsdesc.c_str());
         sel_cnt++;
       } else {
         SendMessageW(het, WM_SETTEXT, 0, (LPARAM)L"[Multiple selection]");
@@ -593,7 +594,7 @@ bool GME_RepoParseXml(const std::wstring& xml, std::vector<GME_ReposMod_Struct>*
       reposmod.clear();
 
       wcscpy(reposmod.name, child.attribute(L"name").value());
-      wcstombs(reposmod.url, child.attribute(L"url").value(), wcslen(child.attribute(L"url").value()));
+      GME_WcsToUtf8(reposmod.url, child.attribute(L"url").value());
       reposmod.version = GME_RepoParseVers(child.attribute(L"version").value());
 
       /* check for description */
@@ -794,18 +795,18 @@ void GME_RepoDnl_OnSav(const wchar_t* path)
   mod_path += L".zip";
   if(GME_IsFile(mod_path)) {
     if(!GME_FileDelete(mod_path)) {
-      GME_Logs(GME_LOG_ERROR, "GME_RepoDnl_OnSav", "Unable to delete old file", GME_StrToMbs(mod_path).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_RepoDnl_OnSav", "Unable to delete old file", GME_WcsToUtf8(mod_path).c_str());
       GME_DialogWarning(g_hwndRepUpd, L"Download finalization error, see debug logs for details.");
     }
   }
   if(!GME_FileMove(path, mod_path, true)) {
-    GME_Logs(GME_LOG_ERROR, "GME_RepoDnl_OnSav", "Unable to rename temporary file", GME_StrToMbs(path).c_str());
+    GME_Logs(GME_LOG_ERROR, "GME_RepoDnl_OnSav", "Unable to rename temporary file", GME_WcsToUtf8(path).c_str());
     GME_DialogWarning(g_hwndRepUpd, L"Download finalization error, see debug logs for details.");
   }
   /* update item in list view */
   GME_RepoDnl_SetItemProgress(g_GME_ReposDnl_List[g_ReposQry_Id].name, -1);
   GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[g_ReposQry_Id].name, L"Completed");
-  GME_Logs(GME_LOG_NOTICE, "GME_RepoDnl_OnSav", "Download Done", GME_StrToMbs(mod_path).c_str());
+  GME_Logs(GME_LOG_NOTICE, "GME_RepoDnl_OnSav", "Download Done", GME_WcsToUtf8(mod_path).c_str());
 }
 
 DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
@@ -833,15 +834,15 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
     SendMessage(hpb, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
     EnableWindow(GetDlgItem(g_hwndRepUpd, BTN_CANCEL), true);
     GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Downloading...");
-    GME_Logs(GME_LOG_NOTICE, "GME_RepoQueryDnl_Th", "Downloading", g_GME_ReposDnl_List[i].url);
+    GME_Logs(GME_LOG_NOTICE, "GME_RepoQueryDnl_Th", "Downloading", g_GME_ReposDnl_List[i].url.c_str());
 
-    curl_result = GME_NetwHttpGETCurl(g_GME_ReposDnl_List[i].url, GME_RepoDnl_OnErr, GME_RepoDnl_OnDnlCurl, GME_RepoDnl_OnSav, GME_GameGetCurModsPath());
+    curl_result = GME_NetwHttpGETCurl(g_GME_ReposDnl_List[i].url.c_str(), GME_RepoDnl_OnErr, GME_RepoDnl_OnDnlCurl, GME_RepoDnl_OnSav, GME_GameGetCurModsPath());
     if(curl_result.res)
     {
       /* error received from curl */
       bool showdialog = true;
       http_fail++;
-      err_msg = "Download failed for '" + GME_StrToMbs(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
+      err_msg = "Download failed for '" + GME_WcsToUtf8(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
       switch(curl_result.res)
       {
       case CURLE_WRITE_ERROR:
@@ -865,7 +866,7 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
       }
       if (showdialog)
       {
-        GME_DialogWarning(g_hwndRepUpd, GME_StrToWcs(err_msg));
+        GME_DialogWarning(g_hwndRepUpd, GME_Utf8ToWcs(err_msg));
       }
     }
 
@@ -875,7 +876,7 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
       /*Error receive from http code*/
       bool showdialog = true;
       http_fail++;
-      err_msg = "Download failed for '" + GME_StrToMbs(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
+      err_msg = "Download failed for '" + GME_WcsToUtf8(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
       switch(curl_result.http_code)
       {
       case HTTP_ERROR_BAD_REQUEST:
@@ -947,7 +948,7 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
       }
       if (showdialog)
       {
-        GME_DialogWarning(g_hwndRepUpd, GME_StrToWcs(err_msg));
+        GME_DialogWarning(g_hwndRepUpd, GME_Utf8ToWcs(err_msg));
       }
 
     }
@@ -1009,7 +1010,7 @@ void GME_RepoUpd_OnEnd(const char* body, size_t body_size)
   HWND hpb = GetDlgItem(g_hwndRepUpd, PBM_REPOQRY);
   SendMessage(hpb, PBM_SETPOS, (WPARAM)100, 0);
   //GME_RepoParseXml(GME_StrToWcs(body));
-  if(!GME_RepoParseXml(GME_StrToWcs(body), &g_GME_ReposMod_List, NULL)) {
+  if(!GME_RepoParseXml(GME_Utf8ToWcs(body), &g_GME_ReposMod_List, NULL)) {
     GME_DialogWarning(g_hwndRepUpd, L"Repository query failed, XML Parsing error.");
   }
 }
@@ -1088,7 +1089,7 @@ DWORD WINAPI GME_RepoQueryUpd_Th(void* args)
       /* error received from curl */
       bool showdialog = true;
       http_fail++;
-      err_msg = "Download failed for '" + GME_StrToMbs(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
+      err_msg = "Download failed for '" + GME_WcsToUtf8(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
       switch(curl_result.res)
       {
       case CURLE_WRITE_ERROR:
@@ -1110,7 +1111,7 @@ DWORD WINAPI GME_RepoQueryUpd_Th(void* args)
       }
       if (showdialog)
       {
-        GME_DialogWarning(g_hwndRepUpd, GME_StrToWcs(err_msg));
+        GME_DialogWarning(g_hwndRepUpd, GME_Utf8ToWcs(err_msg));
       }
     }
 
@@ -1181,7 +1182,7 @@ DWORD WINAPI GME_RepoQueryUpd_Th(void* args)
       }
       if (showdialog)
       {
-        GME_DialogWarning(g_hwndRepUpd, GME_StrToWcs(err_msg));
+        GME_DialogWarning(g_hwndRepUpd, GME_Utf8ToWcs(err_msg));
       }
 
     }
@@ -1333,23 +1334,52 @@ std::string GME_ReposXmlEncode(const std::wstring& src)
 {
   std::string source;
   std::string encode;
-  GME_StrToMbs(source, src);
+  GME_WcsToUtf8(source, src);
 
-  for(unsigned i = 0; i < source.size(); i++) {
-    if(source[i] == '\r' || source[i] == '\n' || source[i] == '&') {
-      encode.append("&#");
-      if(source[i] == '\r') {
-        encode.append("13;");
-      }
-      if(source[i] == '\n') {
-        encode.append("10;");
-      }
-      if(source[i] == '&') {
-        encode.append("26;");
-      }
-    } else {
-      encode.append(1, source[i]);
+  for(size_t i = 0; i < source.size(); i++) 
+  {
+
+    switch(source[i])
+    {
+      case '&':
+        encode.append("&amp;");
+        break;
+      case '<':
+        encode.append("&lt;");
+        break;
+      case '>':
+        encode.append("&gt;");
+        break;
+      case '\r':
+        encode.append("&#13;");
+        break;
+      case '\n':
+        encode.append("&#10;");
+        break;
+      case '"':
+    encode.append("&quot;");
+    break;
+    case '\'':
+    encode.append("&apos;");
+    break;
+      default:
+        encode.append(1, source[i]);
     }
+
+    // if(source[i] == '\r' || source[i] == '\n' || source[i] == '&') {
+    //   encode.append("&#");
+    //   if(source[i] == '\r') {
+    //     encode.append("13;");
+    //   }
+    //   if(source[i] == '\n') {
+    //     encode.append("10;");
+    //   }
+    //   if(source[i] == '&') {
+    //     encode.append("26;");
+    //   }
+    // } else {
+    //   encode.append(1, source[i]);
+    // }
   }
   return encode;
 }
@@ -1358,27 +1388,76 @@ std::string GME_ReposXmlDecode(const std::wstring& src)
 {
   std::string source;
   std::string decode;
-  GME_StrToMbs(source, src);
+  GME_WcsToUtf8(source, src);
 
-  char ccode[16];
-  unsigned icode;
-  unsigned n;
-
-  for(unsigned i = 0; i < source.size(); i++) {
-    if(source[i] == '&') {
-      i+=2; // #
-      for(n = 0; source[i] != ';'; n++, i++) {
-        ccode[n] = source[i];
+  for (size_t i = 0; i < source.size(); i++)
+  {
+    if (source[i] == '&')
+    {
+      if (source.compare(i, 5, "&amp;") == 0)
+      {
+          decode += '&';
+          i += 4;
       }
-      ccode[n] = '\0';
-      icode = strtol(ccode, NULL, 10);
-      if(icode == 13) { decode.append(1, '\r'); continue; }
-      if(icode == 10) { decode.append(1, '\n'); continue; }
-      if(icode == 26) { decode.append(1, '&'); continue; }
-    } else {
-      decode.append(1, source[i]);
+      else if (source.compare(i, 4, "&lt;") == 0)
+      {
+          decode += '<';
+          i += 3;
+      }
+      else if (source.compare(i, 4, "&gt;") == 0)
+      {
+          decode += '>';
+          i += 3;
+      }
+      else if (source.compare(i, 6, "&quot;") == 0)
+      {
+          decode += '"';
+          i += 5;
+      }
+      else if (source.compare(i, 6, "&apos;") == 0)
+      {
+          decode += '\'';
+          i += 5;
+      }
+      else if (source[i+1] == '#')
+      {
+        size_t j = i + 2;
+        std::string num;
+        while (j < source.size() && source[j] != ';')
+            num += source[j++];
+        int code = std::stoi(num);
+        decode += static_cast<char>(code);
+        i = j; // skip ;
+      }
     }
+    else
+    {
+      decode += source[i];
+    }  
   }
+
+
+  // char ccode[16];
+  // unsigned icode;
+  // unsigned n;
+
+
+
+  // for(unsigned i = 0; i < source.size(); i++) {
+  //   if(source[i] == '&') {
+  //     i+=2; // #
+  //     for(n = 0; source[i] != ';'; n++, i++) {
+  //       ccode[n] = source[i];
+  //     }
+  //     ccode[n] = '\0';
+  //     icode = strtol(ccode, NULL, 10);
+  //     if(icode == 13) { decode.append(1, '\r'); continue; }
+  //     if(icode == 10) { decode.append(1, '\n'); continue; }
+  //     if(icode == 26) { decode.append(1, '&'); continue; }
+  //   } else {
+  //     decode.append(1, source[i]);
+  //   }
+  // }
 
   return decode;
 }
@@ -1387,7 +1466,7 @@ std::string GME_RepoMakeXml(const char* url_str, bool cust_path, const wchar_t* 
 {
 
   if(!GME_NetwIsUrl(url_str)) {
-    GME_DialogError(g_hwndRepXml, L"'" + GME_StrToWcs(url_str) + L"' does not appear as a valid URL.");
+    GME_DialogError(g_hwndRepXml, L"'" + GME_Utf8ToWcs(url_str) + L"' does not appear as a valid URL.");
     return std::string();
   }
 
@@ -1443,11 +1522,11 @@ std::string GME_RepoMakeXml(const char* url_str, bool cust_path, const wchar_t* 
 
   for(unsigned i = 0; i < name_list.size(); i++) {
     xml_ascii += "  <mod name=\"";
-    xml_ascii += GME_StrToMbs(name_list[i]);
+    xml_ascii += GME_WcsToUtf8(name_list[i]);
     xml_ascii += "\" version=\"";
-    xml_ascii += GME_StrToMbs(vers_list[i]);
+    xml_ascii += GME_WcsToUtf8(vers_list[i]);
     xml_ascii += "\" url=\"";
-    xml_ascii += GME_NetwEncodeUrl(base_url + GME_StrToMbs(name_list[i]));
+    xml_ascii += GME_NetwEncodeUrl(base_url + GME_WcsToUtf8(name_list[i]));
     xml_ascii += ".zip\">";
     if(!desc_list[i].empty()) {
       //xml_ascii += "    ";
@@ -1512,7 +1591,7 @@ bool GME_RepoSaveXml()
     if(fwrite(xml_src, 1, xml_src_size, fp) != xml_src_size) {
       fclose(fp);
       delete[] xml_src;
-      GME_Logs(GME_LOG_ERROR, "GME_RepoSaveXml", "Write error", GME_StrToMbs(file_path).c_str());
+      GME_Logs(GME_LOG_ERROR, "GME_RepoSaveXml", "Write error", GME_WcsToUtf8(file_path).c_str());
       return false;
     }
 
@@ -1548,9 +1627,9 @@ bool GME_RepoTestXml(const wchar_t* path, unsigned offst)
 
     for(unsigned i = 0; i < reposmod_list.size(); i++) {
       output += "==================================================================================================\r\nMod: \"";
-      output += GME_StrToMbs(reposmod_list[i].name);
+      output += GME_WcsToUtf8(reposmod_list[i].name);
       output += "\"\r\nVer: \"";
-      output += GME_StrToMbs(GME_RepoVersString(reposmod_list[i].version));
+      output += GME_WcsToUtf8(GME_RepoVersString(reposmod_list[i].version));
       output += "\"\r\nUrl: \"";
       output += reposmod_list[i].url;
       output += "\"\r\nDescription:\r\n";
